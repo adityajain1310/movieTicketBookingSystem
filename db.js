@@ -1,10 +1,10 @@
 const mysql = require('mysql2')
 
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'aditya',
-    database: 'ticketBooking',
-    password: 'adityauser'
+    host: '********',
+    user: '********',
+    database: '********',
+    password: '********'
 })
 
 var count;
