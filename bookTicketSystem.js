@@ -9,7 +9,7 @@ let tickets = []
     {username: 'Kapil', MobileNumber: 'xxxx123456', timings: '5:00'}
 */
 
-db.createTable()
+db.createticketsTable()
     .then((res) => {
         console.log(res)
     })
@@ -17,21 +17,34 @@ db.createTable()
         console.error(err)
     }))
 
-db.gettickets()
-    .then((movietickets) => {
-        for(ticket of movietickets) {
-            tickets.push({
-                ticketid: ticket.ticketid,
-                username: ticket.username,
-                mobilenumber: ticket.mobilenumber,
-                timing: ticket.timing,
-                status: ticket.status
-            })
-        }
+db.createshowcountTable()
+    .then((res) => {
+        console.log(res)
     })
-    .catch((err) => {
+    .catch((err => {
         console.error(err)
-    })
+    }))
+
+function getticketlist() {
+    db.gettickets()
+        .then((movietickets) => {
+            tickets = []
+            for(ticket of movietickets) {
+                tickets.push({
+                    ticketid: ticket.ticketid,
+                    username: ticket.username,
+                    mobilenumber: ticket.mobilenumber,
+                    timing: ticket.timing,
+                    status: ticket.status
+                })
+            }
+        })
+        .catch((err) => {
+            console.error(err)
+        })    
+}
+
+getticketlist()
 
 route.post('/addticket', (req, res) => {
     db.addtickets(req.body.username, req.body.mobilenumber, req.body.timing, "valid")
@@ -93,7 +106,37 @@ route.delete('/deleteticket', (req, res) => {
         })
 })
 
+route.post('/userdetails', (req, res) => {
+    db.userdetails(req.body.ticketid)
+        .then((result) => {
+            res.send(result)
+        })
+        .catch((err) => {
+            console.error(err)
+        })
+})
 
+route.patch('/statuscheck', (req, res) => {
+    db.updatestatus('expired', '08:00:00')
+        .then((result) => {
+            if(result.changedRows > 0) {
+                getticketlist()
+            }
+            if(result.affectedRows > 0) {
+                db.deleteexpiredticket()
+                
+                for(var i = 0; i < tickets.length; i++) {
+                    if(tickets[i].status == 'expired') {
+                        tickets.splice(i, 1);
+                    }
+                }
+            }
+            res.send(tickets)
+        })
+        .catch((err) => {
+            console.error(err)
+        })
+})
 
 
 module.exports = route
