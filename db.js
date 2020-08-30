@@ -3,14 +3,15 @@ const mysql = require('mysql2')
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'aditya',
-    database: 'ticketBooking'
+    database: 'ticketBooking',
+    password: 'adityauser'
 })
 
 function createTable () {
     return new Promise(function (resolve, reject) {
         connection.query(
             `CREATE TABLE IF NOT EXISTS tickets (
-                id INTEGER AUTO_INCREMENT PRIMARY KEY,
+                ticketid INTEGER AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(100),
                 mobilenumber INTEGER,
                 timing TIME,
@@ -46,7 +47,7 @@ function getticketsbytiming (movieTiming) {
 
     return new Promise(function (resolve, reject) {
         connection.query(
-            `SELECT username, mobilenumber, timing FROM tickets WHERE timing=?`,
+            `SELECT ticketid, username, mobilenumber, timing, status FROM tickets WHERE timing=?`,
             [movieTiming],
             function (err, results) {
                 if(err) {
@@ -59,17 +60,16 @@ function getticketsbytiming (movieTiming) {
     })
 }
 
-function addtickets (username, mobilenumber, timing, status) {
-
+function addtickets (newusername, newmobilenumber, newtiming, newstatus) {
     return new Promise(function (resolve, reject) {
         connection.query(
-            `INSERT INTO tickets (task) VALUES (?)`,
-            [username, mobilenumber, timing, status],
+            `INSERT INTO tickets (username, mobilenumber, timing, status) VALUES (?, ?, ?, ?)`,
+            [newusername, newmobilenumber, newtiming, newstatus],
             function (err, results) {
                 if(err) {
                     reject(err)
                 } else {
-                    resolve()
+                    resolve(results)
                 }
             }
         )
@@ -79,7 +79,7 @@ function addtickets (username, mobilenumber, timing, status) {
 function updatetickettiming (ticketid, newTiming) {
     return new Promise(function (resolve, reject) {
         connection.query(
-            `UPDATE tickets SET timing=? WHERE id=?`,
+            `UPDATE tickets SET timing=? WHERE ticketid=?`,
             [newTiming, ticketid],
             function (err, results) {
                 if (err) {
@@ -95,7 +95,7 @@ function updatetickettiming (ticketid, newTiming) {
 function deleteticket (ticketid) {
     return new Promise(function (resolve, reject) {
         connection.query(
-            `DELETE FROM tickets WHERE id=?`,
+            `DELETE FROM tickets WHERE ticketid=?`,
             [ticketid],
             function (err, results) {
                 if (err) {  
@@ -111,7 +111,7 @@ function deleteticket (ticketid) {
 function userdetails (ticketid) {
     return new Promise(function (resolve, reject) {
         connection.query(
-            `SELECT username, mobilenumber FROM tickets WHERE id=?`,
+            `SELECT username, mobilenumber FROM tickets WHERE ticketid=?`,
             [ticketid],
             function (err, results) {
                 if (err) {
