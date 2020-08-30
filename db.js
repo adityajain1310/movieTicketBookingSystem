@@ -7,6 +7,8 @@ const connection = mysql.createConnection({
     password: 'adityauser'
 })
 
+var count;
+
 function createticketsTable () {
     return new Promise(function (resolve, reject) {
         connection.query(
@@ -79,51 +81,42 @@ function getticketsbytiming (movieTiming) {
 
 function numberofshow (timing) {
     connection.query(
-        `SELECT count FROM showcount WHERE timing = ?`,
+        `SELECT total FROM (SELECT timing as stiming, count(*) as total FRom tickets group by timing) AS showcount where stiming = ?`,
         [timing],
-        function(err, results) {
+        function(err, result) {
             if(err) {
                 console.error(err)
             } else {
-                console.log(results)
-                return results
+                Object.keys(result).forEach(function(key) {
+                    var row = result[key];
+                    count =  row.total
+                });
             }
-        }
-    )
-}
-
-function updateshowcountTable() {
-    connection.query(
-        `INSERT INTO showcount SELECT timing, count(*) as total FROM tickets group by timing`,
-        function(err, results) {
-            if(err) {
-                console.error(err)
-            } else {
-                console.log(results)
-            }
-        }
+        }    
     )
 }
 
 function addtickets (newusername, newmobilenumber, newtiming, newstatus) {
     return new Promise(function (resolve, reject) {
-        if (numberofshow > 20) {
-            reject("Show is Housefull")
-        }
-        else {
-            connection.query(
-                `INSERT INTO tickets (username, mobilenumber, timing, status) VALUES (?, CAST(? AS UNSIGNED), ?, ?)`,
-                [newusername, newmobilenumber, newtiming, newstatus],
-                function (err, results) {
-                    if(err) {
-                        reject(err)
-                    } else {
-                        resolve(results)
+        numberofshow(newtiming)
+        setTimeout(() => {
+            if (count > 20) {
+                console.log('Show is housefull')
+            } else {
+                console.log('hi')
+                connection.query(
+                    `INSERT INTO tickets (username, mobilenumber, timing, status) VALUES (?, CAST(? AS UNSIGNED), ?, ?)`,
+                    [newusername, newmobilenumber, newtiming, newstatus],
+                    function (err, results) {
+                        if(err) {
+                            reject(err)
+                        } else {
+                            resolve(results)
+                        }
                     }
-                }
-            )
-        }
-        updateshowcountTable()
+                )
+            }
+        }, 1)
     })
 }
 
