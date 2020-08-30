@@ -65,7 +65,7 @@ route.post('/ticketsbytiming', (req, res) => {
 
 route.patch('/updatetickettiming', (req, res) => {
     db.updatetickettiming(req.body.ticketid, req.body.timing)
-        .then((result) => {
+        .then(() => {
             for(ticket of tickets){
                 if(ticket.ticketid == req.body.ticketid) {
                     ticket.timing = req.body.timing
@@ -78,6 +78,20 @@ route.patch('/updatetickettiming', (req, res) => {
         })
 })
 
+route.delete('/deleteticket', (req, res) => {
+    db.deleteticket(req.body.ticketid)
+        .then(() => {
+            for(var i = 0; i < tickets.length; i++) {
+                if(tickets[i].ticketid == req.body.ticketid) {
+                    tickets.splice(i, 1);
+                }
+            }
+            res.send(tickets)
+        })
+        .catch((err) => {
+            console.error(err)
+        })
+})
 
 
 
